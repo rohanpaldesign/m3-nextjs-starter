@@ -5,9 +5,11 @@ interface TopAppBarProps {
   navigationIcon?: React.ReactNode
   actions?: React.ReactNode
   variant?: 'center-aligned' | 'small' | 'medium' | 'large'
+  className?: string
+  style?: React.CSSProperties
 }
 
-export function TopAppBar({ title, navigationIcon, actions, variant = 'small' }: TopAppBarProps) {
+export function TopAppBar({ title, navigationIcon, actions, variant = 'small', className, style }: TopAppBarProps) {
   const isCenterAligned = variant === 'center-aligned'
   const isMedium = variant === 'medium'
   const isLarge = variant === 'large'
@@ -16,6 +18,7 @@ export function TopAppBar({ title, navigationIcon, actions, variant = 'small' }:
 
   return (
     <header
+      className={className}
       style={{
         width: '100%',
         height,
@@ -27,6 +30,7 @@ export function TopAppBar({ title, navigationIcon, actions, variant = 'small' }:
         paddingInline: '4px',
         gap: '0',
         boxSizing: 'border-box',
+        ...style,
       }}
     >
       {isMedium || isLarge ? (

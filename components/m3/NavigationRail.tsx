@@ -14,14 +14,19 @@ interface NavigationRailProps {
   activeHref: string
   onNavigate?: (href: string) => void
   fab?: React.ReactNode
+  /** Override rail width. Defaults to 80px per M3 spec. */
+  width?: string
+  className?: string
+  style?: React.CSSProperties
 }
 
-export function NavigationRail({ items, activeHref, onNavigate, fab }: NavigationRailProps) {
+export function NavigationRail({ items, activeHref, onNavigate, fab, width, className, style }: NavigationRailProps) {
   return (
     <nav
       aria-label="Main navigation"
+      className={className}
       style={{
-        width: '80px',
+        width: width ?? '80px',
         height: '100%',
         backgroundColor: 'var(--md-sys-color-surface-container-low)',
         display: 'flex',
@@ -31,6 +36,7 @@ export function NavigationRail({ items, activeHref, onNavigate, fab }: Navigatio
         paddingBottom: '8px',
         gap: '4px',
         flexShrink: 0,
+        ...style,
       }}
     >
       {fab && (

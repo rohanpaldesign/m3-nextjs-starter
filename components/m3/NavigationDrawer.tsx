@@ -14,9 +14,13 @@ interface NavigationDrawerProps {
   activeHref: string
   onNavigate?: (href: string) => void
   headline?: string
+  /** Override drawer width. Defaults to 360px per M3 spec. */
+  width?: string
+  className?: string
+  style?: React.CSSProperties
 }
 
-export function NavigationDrawer({ items, activeHref, onNavigate, headline }: NavigationDrawerProps) {
+export function NavigationDrawer({ items, activeHref, onNavigate, headline, width, className, style }: NavigationDrawerProps) {
   const handleKeyDown = useCallback((e: React.KeyboardEvent, href: string) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
@@ -27,8 +31,9 @@ export function NavigationDrawer({ items, activeHref, onNavigate, headline }: Na
   return (
     <nav
       aria-label="Main navigation"
+      className={className}
       style={{
-        width: '360px',
+        width: width ?? '360px',
         minWidth: '240px',
         height: '100%',
         backgroundColor: 'var(--md-sys-color-surface-container-low)',
@@ -38,6 +43,7 @@ export function NavigationDrawer({ items, activeHref, onNavigate, headline }: Na
         flexDirection: 'column',
         gap: '4px',
         flexShrink: 0,
+        ...style,
       }}
     >
       {headline && (

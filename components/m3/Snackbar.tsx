@@ -9,9 +9,11 @@ export interface SnackbarProps {
   onAction?: () => void
   onClose?: () => void
   duration?: number
+  className?: string
+  style?: React.CSSProperties
 }
 
-export function Snackbar({ open, message, action, onAction, onClose, duration = 4000 }: SnackbarProps) {
+export function Snackbar({ open, message, action, onAction, onClose, duration = 4000, className, style }: SnackbarProps) {
   const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
@@ -33,6 +35,7 @@ export function Snackbar({ open, message, action, onAction, onClose, duration = 
       role="status"
       aria-live="polite"
       aria-atomic="true"
+      className={className}
       style={{
         position: 'fixed',
         bottom: open ? '24px' : '-100px',
@@ -53,6 +56,7 @@ export function Snackbar({ open, message, action, onAction, onClose, duration = 
         opacity: open ? 1 : 0,
         transition: 'bottom 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s cubic-bezier(0.2, 0, 0, 1)',
         pointerEvents: open ? 'auto' : 'none',
+        ...style,
       }}
     >
       <span

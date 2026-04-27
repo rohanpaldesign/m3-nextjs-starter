@@ -13,12 +13,15 @@ interface NavigationBarProps {
   items: NavBarItem[]
   activeHref: string
   onNavigate?: (href: string) => void
+  className?: string
+  style?: React.CSSProperties
 }
 
-export function NavigationBar({ items, activeHref, onNavigate }: NavigationBarProps) {
+export function NavigationBar({ items, activeHref, onNavigate, className, style }: NavigationBarProps) {
   return (
     <nav
       aria-label="Main navigation"
+      className={className}
       style={{
         width: '100%',
         height: '80px',
@@ -27,6 +30,7 @@ export function NavigationBar({ items, activeHref, onNavigate }: NavigationBarPr
         alignItems: 'center',
         justifyContent: 'space-around',
         paddingBottom: 'env(safe-area-inset-bottom)',
+        ...style,
       }}
     >
       {items.map(item => {
