@@ -1,0 +1,119 @@
+'use client'
+
+import React from 'react'
+
+interface NavItem {
+  label: string
+  icon: string
+  href: string
+  badge?: number | string
+}
+
+interface NavigationDrawerProps {
+  items: NavItem[]
+  activeHref: string
+  onNavigate?: (href: string) => void
+  headline?: string
+}
+
+export function NavigationDrawer({ items, activeHref, onNavigate, headline }: NavigationDrawerProps) {
+  return (
+    <nav
+      style={{
+        width: '360px',
+        minWidth: '240px',
+        height: '100%',
+        backgroundColor: 'var(--md-sys-color-surface-container-low)',
+        paddingTop: '12px',
+        paddingBottom: '12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '4px',
+      }}
+    >
+      {headline && (
+        <div
+          style={{
+            paddingInline: '28px',
+            paddingBlock: '16px',
+            fontSize: '14px',
+            fontWeight: 500,
+            letterSpacing: '0.1px',
+            color: 'var(--md-sys-color-on-surface-variant)',
+          }}
+        >
+          {headline}
+        </div>
+      )}
+
+      {items.map(item => {
+        const isActive = activeHref === item.href
+        return (
+          <a
+            key={item.href}
+            href={item.href}
+            onClick={e => {
+              if (onNavigate) {
+                e.preventDefault()
+                onNavigate(item.href)
+              }
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              marginInline: '12px',
+              paddingInline: '16px',
+              height: '56px',
+              borderRadius: '9999px',
+              textDecoration: 'none',
+              cursor: 'pointer',
+              backgroundColor: isActive ? 'var(--md-sys-color-secondary-container)' : 'transparent',
+              color: isActive
+                ? 'var(--md-sys-color-on-secondary-container)'
+                : 'var(--md-sys-color-on-surface-variant)',
+              transition: 'background-color 0.2s',
+              position: 'relative',
+            }}
+          >
+            <span
+              className="material-symbols-rounded"
+              style={{
+                fontSize: '24px',
+                fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
+              }}
+            >
+              {item.icon}
+            </span>
+
+            <span
+              style={{
+                fontSize: '14px',
+                lineHeight: '20px',
+                fontWeight: isActive ? 700 : 500,
+                letterSpacing: '0.1px',
+                flex: 1,
+              }}
+            >
+              {item.label}
+            </span>
+
+            {item.badge !== undefined && (
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 500,
+                  color: isActive
+                    ? 'var(--md-sys-color-on-secondary-container)'
+                    : 'var(--md-sys-color-on-surface-variant)',
+                }}
+              >
+                {item.badge}
+              </span>
+            )}
+          </a>
+        )
+      })}
+    </nav>
+  )
+}
