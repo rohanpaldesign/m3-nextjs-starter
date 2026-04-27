@@ -122,3 +122,39 @@ html, body {
 .md-label-large   { font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: 0.1px; }
 .md-label-medium  { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.5px; }
 .md-label-small   { font-size: 11px; line-height: 16px; font-weight: 500; letter-spacing: 0.5px; }
+
+/* ── Focus styles — visible for keyboard users, hidden for mouse ─────────── */
+:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Custom nav links: pill-shaped focus ring to match the pill indicator */
+nav a:focus-visible {
+  outline: 3px solid var(--md-sys-color-primary);
+  outline-offset: 0;
+  border-radius: 9999px;
+}
+
+/* ── Reduced motion — respect user OS preference ─────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── High contrast mode ───────────────────────────────────────────────────── */
+@media (prefers-contrast: more) {
+  :root {
+    --md-sys-color-outline: #FFFFFF;
+    --md-sys-color-outline-variant: #FFFFFF;
+  }
+
+  nav a, button, [role="button"] {
+    outline: 2px solid currentColor;
+  }
+}

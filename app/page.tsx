@@ -60,6 +60,25 @@ export default function Home() {
         >
           Layout Example
         </Link>
+        <Link
+          href="/forms"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '40px',
+            paddingInline: '24px',
+            borderRadius: '9999px',
+            border: '1px solid var(--md-sys-color-outline)',
+            color: 'var(--md-sys-color-primary)',
+            fontSize: '14px',
+            fontWeight: 500,
+            letterSpacing: '0.1px',
+            textDecoration: 'none',
+          }}
+        >
+          Form Patterns
+        </Link>
       </div>
     </main>
   )

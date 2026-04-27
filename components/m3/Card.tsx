@@ -4,12 +4,6 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'elevated' | 'filled' | 'outlined'
 }
 
-const surfaceOverlay = {
-  elevated: 'rgba(208, 188, 255, 0.05)',
-  filled:   'transparent',
-  outlined: 'transparent',
-}
-
 const cardStyles: Record<string, React.CSSProperties> = {
   elevated: {
     backgroundColor: 'var(--md-sys-color-surface-container-low)',
@@ -31,6 +25,7 @@ const cardStyles: Record<string, React.CSSProperties> = {
 export function Card({ variant = 'elevated', className, style, children, ...props }: CardProps) {
   return (
     <div
+      role="region"
       style={{
         borderRadius: 'var(--md-sys-shape-corner-medium)',
         padding: '16px',

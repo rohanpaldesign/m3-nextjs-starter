@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useCallback } from 'react'
 
 interface NavItem {
   label: string
@@ -17,8 +17,16 @@ interface NavigationDrawerProps {
 }
 
 export function NavigationDrawer({ items, activeHref, onNavigate, headline }: NavigationDrawerProps) {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent, href: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onNavigate?.(href)
+    }
+  }, [onNavigate])
+
   return (
     <nav
+      aria-label="Main navigation"
       style={{
         width: '360px',
         minWidth: '240px',
@@ -29,6 +37,7 @@ export function NavigationDrawer({ items, activeHref, onNavigate, headline }: Na
         display: 'flex',
         flexDirection: 'column',
         gap: '4px',
+        flexShrink: 0,
       }}
     >
       {headline && (
@@ -52,12 +61,15 @@ export function NavigationDrawer({ items, activeHref, onNavigate, headline }: Na
           <a
             key={item.href}
             href={item.href}
+            aria-current={isActive ? 'page' : undefined}
+            aria-label={item.badge !== undefined ? `${item.label}, ${item.badge} new` : undefined}
             onClick={e => {
               if (onNavigate) {
                 e.preventDefault()
                 onNavigate(item.href)
               }
             }}
+            onKeyDown={e => handleKeyDown(e, item.href)}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -73,11 +85,11 @@ export function NavigationDrawer({ items, activeHref, onNavigate, headline }: Na
                 ? 'var(--md-sys-color-on-secondary-container)'
                 : 'var(--md-sys-color-on-surface-variant)',
               transition: 'background-color 0.2s',
-              position: 'relative',
             }}
           >
             <span
               className="material-symbols-rounded"
+              aria-hidden="true"
               style={{
                 fontSize: '24px',
                 fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
@@ -100,6 +112,7 @@ export function NavigationDrawer({ items, activeHref, onNavigate, headline }: Na
 
             {item.badge !== undefined && (
               <span
+                aria-hidden="true"
                 style={{
                   fontSize: '11px',
                   fontWeight: 500,

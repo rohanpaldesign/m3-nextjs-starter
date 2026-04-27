@@ -1,0 +1,135 @@
+'use client'
+
+import React from 'react'
+
+interface NavRailItem {
+  label: string
+  icon: string
+  href: string
+  badge?: number | string
+}
+
+interface NavigationRailProps {
+  items: NavRailItem[]
+  activeHref: string
+  onNavigate?: (href: string) => void
+  fab?: React.ReactNode
+}
+
+export function NavigationRail({ items, activeHref, onNavigate, fab }: NavigationRailProps) {
+  return (
+    <nav
+      aria-label="Main navigation"
+      style={{
+        width: '80px',
+        height: '100%',
+        backgroundColor: 'var(--md-sys-color-surface-container-low)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        paddingTop: '8px',
+        paddingBottom: '8px',
+        gap: '4px',
+        flexShrink: 0,
+      }}
+    >
+      {fab && (
+        <div style={{ marginBottom: '12px', marginTop: '8px' }}>
+          {fab}
+        </div>
+      )}
+
+      {items.map(item => {
+        const isActive = activeHref === item.href
+        return (
+          <a
+            key={item.href}
+            href={item.href}
+            aria-current={isActive ? 'page' : undefined}
+            aria-label={item.badge !== undefined ? `${item.label}, ${item.badge} new` : item.label}
+            onClick={e => {
+              if (onNavigate) {
+                e.preventDefault()
+                onNavigate(item.href)
+              }
+            }}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '4px',
+              width: '100%',
+              padding: '4px 0',
+              textDecoration: 'none',
+              color: isActive
+                ? 'var(--md-sys-color-on-secondary-container)'
+                : 'var(--md-sys-color-on-surface-variant)',
+              outline: 'none',
+            }}
+          >
+            <div style={{ position: 'relative' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '56px',
+                  height: '32px',
+                  borderRadius: '9999px',
+                  backgroundColor: isActive ? 'var(--md-sys-color-secondary-container)' : 'transparent',
+                  transition: 'background-color 0.2s',
+                }}
+              >
+                <span
+                  className="material-symbols-rounded"
+                  style={{
+                    fontSize: '24px',
+                    fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",
+                  }}
+                >
+                  {item.icon}
+                </span>
+              </div>
+
+              {item.badge !== undefined && (
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    right: '4px',
+                    minWidth: '16px',
+                    height: '16px',
+                    borderRadius: '9999px',
+                    backgroundColor: 'var(--md-sys-color-error)',
+                    color: 'var(--md-sys-color-on-error)',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 4px',
+                  }}
+                >
+                  {item.badge}
+                </span>
+              )}
+            </div>
+
+            <span
+              style={{
+                fontSize: '12px',
+                lineHeight: '16px',
+                fontWeight: isActive ? 700 : 500,
+                letterSpacing: '0.5px',
+                textAlign: 'center',
+              }}
+            >
+              {item.label}
+            </span>
+          </a>
+        )
+      })}
+    </nav>
+  )
+}
