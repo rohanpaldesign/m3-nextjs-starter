@@ -64,7 +64,6 @@ export function NavigationRail({ items, activeHref, onNavigate, fab }: Navigatio
               color: isActive
                 ? 'var(--md-sys-color-on-secondary-container)'
                 : 'var(--md-sys-color-on-surface-variant)',
-              outline: 'none',
             }}
           >
             <div style={{ position: 'relative' }}>
@@ -82,6 +81,7 @@ export function NavigationRail({ items, activeHref, onNavigate, fab }: Navigatio
               >
                 <span
                   className="material-symbols-rounded"
+                  aria-hidden="true"
                   style={{
                     fontSize: '24px',
                     fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",

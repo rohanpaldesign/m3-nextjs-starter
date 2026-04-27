@@ -25,7 +25,6 @@ const cardStyles: Record<string, React.CSSProperties> = {
 export function Card({ variant = 'elevated', className, style, children, ...props }: CardProps) {
   return (
     <div
-      role="region"
       style={{
         borderRadius: 'var(--md-sys-shape-corner-medium)',
         padding: '16px',

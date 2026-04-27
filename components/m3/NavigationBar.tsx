@@ -55,7 +55,6 @@ export function NavigationBar({ items, activeHref, onNavigate }: NavigationBarPr
               color: isActive
                 ? 'var(--md-sys-color-on-secondary-container)'
                 : 'var(--md-sys-color-on-surface-variant)',
-              outline: 'none',
             }}
           >
             <div style={{ position: 'relative' }}>
@@ -73,6 +72,7 @@ export function NavigationBar({ items, activeHref, onNavigate }: NavigationBarPr
               >
                 <span
                   className="material-symbols-rounded"
+                  aria-hidden="true"
                   style={{
                     fontSize: '24px',
                     fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0",

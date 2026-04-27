@@ -9,6 +9,7 @@ import { Radio } from '@/components/m3/Radio'
 import { Switch } from '@/components/m3/Switch'
 import { Slider } from '@/components/m3/Slider'
 import { Snackbar } from '@/components/m3/Snackbar'
+import { useSnackbar } from '@/components/m3/useSnackbar'
 import { Card, CardHeader, CardTitle, CardBody } from '@/components/m3/Card'
 import { Divider } from '@/components/m3/Divider'
 
@@ -30,8 +31,6 @@ interface MdSelectElement extends HTMLElement {
   value: string
 }
 
-type SnackbarState = { open: boolean; message: string }
-
 export default function FormsPage() {
   const emailRef  = useRef<MdTextFieldElement>(null)
   const passRef   = useRef<MdTextFieldElement>(null)
@@ -42,9 +41,7 @@ export default function FormsPage() {
   const [plan, setPlan]           = useState('free')
   const [notifications, setNotifications] = useState(true)
   const [volume, setVolume]       = useState(50)
-  const [snackbar, setSnackbar]   = useState<SnackbarState>({ open: false, message: '' })
-
-  const showSnackbar = (message: string) => setSnackbar({ open: true, message })
+  const { snackbarProps, showSnackbar } = useSnackbar()
 
   function validate(): boolean {
     const email = emailRef.current
@@ -279,11 +276,7 @@ export default function FormsPage() {
         </div>
       </form>
 
-      <Snackbar
-        open={snackbar.open}
-        message={snackbar.message}
-        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-      />
+      <Snackbar {...snackbarProps} />
     </main>
   )
 }

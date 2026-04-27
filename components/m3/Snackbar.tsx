@@ -12,19 +12,21 @@ export interface SnackbarProps {
 }
 
 export function Snackbar({ open, message, action, onAction, onClose, duration = 4000 }: SnackbarProps) {
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const timerRef   = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (open) {
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
-        onClose?.()
+        onCloseRef.current?.()
       }, duration)
     }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current)
     }
-  }, [open, duration, onClose])
+  }, [open, duration])
 
   return (
     <div

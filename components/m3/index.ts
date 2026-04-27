@@ -66,3 +66,4 @@ export { TopAppBar } from './TopAppBar'
 // Feedback
 export { Snackbar } from './Snackbar'
 export type { SnackbarProps } from './Snackbar'
+export { useSnackbar } from './useSnackbar'
