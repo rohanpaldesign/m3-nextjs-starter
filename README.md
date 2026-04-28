@@ -6,6 +6,19 @@ Material Design 3 component library for Next.js — built on Google's official [
 
 ---
 
+## Requirements
+
+| Requirement | Minimum version | Why |
+|---|---|---|
+| Node.js | 18+ | Required by Next.js 14 |
+| Next.js | 14.0+ | App Router, `next/font/google` |
+| React | 18+ | Concurrent features used by `@lit/react` |
+| TypeScript | 5.0+ | `moduleResolution: "bundler"` is TS 5 only |
+
+The `tsconfig.json` in this repo uses `"moduleResolution": "bundler"` which is what allows `@material/web` subpath imports with `.js` extensions to resolve correctly. If your consuming project uses `"moduleResolution": "node"` or `"node16"`, change it to `"bundler"`.
+
+---
+
 ## What's inside
 
 ### `@material/web` wrappers
@@ -65,7 +78,17 @@ Then open `http://localhost:3000` and visit:
 
 **Step 1.** Copy the `components/m3/` folder into your project.
 
-**Step 2.** Add the M3 token block from `app/globals.css` (the entire `:root { ... }` section) to your project's global CSS file.
+The components import from each other using the barrel file (`index.ts`). If you place the folder somewhere other than `components/m3/`, update the barrel's relative imports and make sure your `tsconfig.json` path alias points to it (see Step 3.5).
+
+**Step 2.** Copy these sections from `app/globals.css` into your project's global CSS file — all five are required:
+
+- The entire `:root { ... }` block (M3 color, shape, elevation, and typescale tokens)
+- The `.material-symbols-rounded { ... }` class (icon font configuration)
+- The `html, body { ... }` block (background color and font-family)
+- The `.md-display-large` through `.md-label-small` typography helper classes
+- The `:focus-visible`, `@media (prefers-reduced-motion)`, and `@media (prefers-contrast)` rules at the bottom
+
+The `* { box-sizing: border-box; margin: 0; padding: 0 }` reset at the top of `globals.css` is optional — omit it if your project already has a CSS reset.
 
 **Step 3.** Add `transpilePackages` to `next.config.js`:
 
@@ -75,6 +98,21 @@ const nextConfig = {
 }
 module.exports = nextConfig
 ```
+
+**Step 3.5.** Make sure `tsconfig.json` has the `@/` path alias pointing to your project root:
+
+```json
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+```
+
+All components import from `@/components/m3/...`. If your project uses a different alias (e.g. `~/`) or a different folder structure, do a find-and-replace on `@/components/m3` across the copied files.
 
 **Step 4.** Install dependencies:
 
@@ -99,7 +137,82 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-All wrapper components require `'use client'` — import them only in client components or pages.
+If `Material_Symbols_Rounded` is not available in your version of `next/font/google`, fall back to a `<link>` tag in `<head>`:
+
+```html
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+```
+
+Then update the `.material-symbols-rounded` rule in `globals.css` to use the static family name instead of the CSS variable:
+
+```css
+.material-symbols-rounded {
+  font-family: 'Material Symbols Rounded'; /* instead of var(--font-material-symbols) */
+}
+```
+
+All wrapper components require `'use client'` — see the next section for how this affects Next.js App Router.
+
+---
+
+## Server Components and `'use client'`
+
+This is the most important thing to understand when using this library with Next.js App Router.
+
+**Why all wrappers need `'use client'`:** `@material/web` elements call `customElements.define()` when their module loads. That API only exists in the browser. If Next.js tries to render them on the server, it throws. The `'use client'` directive tells Next.js to skip SSR for that module.
+
+**What this means for your pages:** You cannot import M3 components directly in a Server Component (`.tsx` files without `'use client'`). If you try, you'll get:
+
+```
+Error: createComponent is not a function
+```
+
+**Pattern 1 — Make the page a client component (simplest):**
+
+```tsx
+'use client'
+
+import { FilledButton, OutlinedTextField } from '@/components/m3'
+
+export default function LoginPage() {
+  return (
+    <form>
+      <OutlinedTextField label="Email" />
+      <FilledButton type="submit">Sign in</FilledButton>
+    </form>
+  )
+}
+```
+
+**Pattern 2 — Keep the page as a Server Component, extract interactive parts:**
+
+```tsx
+// app/dashboard/page.tsx  — Server Component, no 'use client'
+import { DashboardClient } from './DashboardClient'
+
+export default async function DashboardPage() {
+  const data = await fetchData()   // server-side fetch, runs on server
+  return <DashboardClient data={data} />
+}
+```
+
+```tsx
+// app/dashboard/DashboardClient.tsx
+'use client'
+
+import { Card, FilledButton, LinearProgress } from '@/components/m3'
+
+export function DashboardClient({ data }: { data: DashboardData }) {
+  return (
+    <Card variant="elevated">
+      <LinearProgress value={data.progress} style={{ width: '100%' }} />
+      <FilledButton onClick={handleAction}>Action</FilledButton>
+    </Card>
+  )
+}
+```
+
+This pattern lets you keep data fetching on the server while using M3 components in client subtrees.
 
 ---
 
@@ -136,6 +249,35 @@ Example — switch from purple to teal:
 ```
 
 Available shape tokens: `extra-small` (4px) · `small` (8px) · `medium` (12px) · `large` (16px) · `extra-large` (28px) · `full` (9999px).
+
+**Adding a light mode:**
+
+The current setup is dark-only. To support both, move the dark tokens into a `[data-theme="dark"]` selector (or `@media (prefers-color-scheme: dark)`) and add a light scheme under `:root`. Generate both schemes at [m3.material.io/theme-builder](https://m3.material.io/theme-builder):
+
+```css
+/* globals.css */
+:root {
+  /* Light scheme — paste light hex values from Theme Builder */
+  --md-sys-color-primary:             #6750A4;
+  --md-sys-color-on-primary:          #FFFFFF;
+  --md-sys-color-background:          #FFFBFE;
+  --md-sys-color-on-background:       #1C1B1F;
+  /* ... full light scheme */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark scheme */
+    --md-sys-color-primary:           #D0BCFF;
+    --md-sys-color-on-primary:        #381E72;
+    --md-sys-color-background:        #141218;
+    --md-sys-color-on-background:     #E6E0E9;
+    /* ... full dark scheme */
+  }
+}
+```
+
+Or for a manual toggle, apply a `data-theme` attribute to `<html>` and scope the selectors accordingly. Because all custom components and `@material/web` both read the same `--md-sys-color-*` tokens, switching the tokens is all that's needed.
 
 ### Level 2 — Component tokens (override one component type)
 
@@ -177,6 +319,8 @@ md-slider {
 ```
 
 Full token lists for every component: [github.com/material-components/material-web/tree/main/tokens](https://github.com/material-components/material-web/tree/main/tokens)
+
+**Using alongside Tailwind CSS:** This library has no dependency on Tailwind and doesn't conflict with it. You can use Tailwind utility classes on wrapper divs and layout containers, and M3 components for interactive elements. The only overlap to watch for is Tailwind's `preflight` reset — if you're using it, remove the `* { box-sizing: border-box; margin: 0; padding: 0 }` block from `globals.css` to avoid double-resetting.
 
 Key prefixes:
 
@@ -287,6 +431,8 @@ import { IconButton, FilledIconButton, OutlinedIconButton, TonalIconButton } fro
 ```
 
 Props: `disabled`, `onClick`, `aria-label` (required for accessibility).
+
+Icon names are Material Symbols identifiers — browse and search the full set at **[fonts.google.com/icons](https://fonts.google.com/icons)**. Use the icon name exactly as shown (e.g. `account_circle`, `arrow_back`, `check_circle`).
 
 ---
 
@@ -670,6 +816,9 @@ Variants: `small` (64dp) · `center-aligned` (64dp) · `medium` (112dp) · `larg
 Standard side navigation for desktop (> 1240px).
 
 ```tsx
+'use client'
+
+import { usePathname, useRouter } from 'next/navigation'
 import { NavigationDrawer } from '@/components/m3'
 
 const NAV_ITEMS = [
@@ -678,16 +827,25 @@ const NAV_ITEMS = [
   { label: 'Settings', icon: 'settings', href: '/settings' },
 ]
 
-<NavigationDrawer
-  items={NAV_ITEMS}
-  activeHref={currentPath}
-  onNavigate={href => router.push(href)}
-  headline="My App"     // optional section label at top
-  width="360px"         // default per M3 spec; reduce for compact layouts
-/>
+export function AppNav() {
+  const pathname = usePathname()   // current route — marks the active item
+  const router   = useRouter()
+
+  return (
+    <NavigationDrawer
+      items={NAV_ITEMS}
+      activeHref={pathname}
+      onNavigate={href => router.push(href)}
+      headline="My App"     // optional section label at top
+      width="360px"         // default per M3 spec; reduce for compact layouts
+    />
+  )
+}
 ```
 
-The `icon` field is a Material Symbols name (e.g. `'home'`, `'settings'`). The active item shows a filled icon and pill-shaped indicator. Inactive items show outlined icons.
+The `activeHref` prop is compared against each item's `href` with strict equality. For nested routes (e.g. `/inbox/123` should highlight the Inbox item), pass `pathname.startsWith(item.href) ? item.href : pathname` or derive the active href before passing it in.
+
+The `icon` field is a Material Symbols name. Browse the full set at [fonts.google.com/icons](https://fonts.google.com/icons). The active item shows a filled icon and pill-shaped indicator. Inactive items show outlined icons.
 
 ---
 
@@ -857,31 +1015,53 @@ M3 defines three navigation patterns by screen width:
 | Tablet | 600–1240px | `NavigationRail` (side, compact) |
 | Desktop | > 1240px | `NavigationDrawer` (side, full) |
 
+The best App Router pattern is to keep the layout itself as a Server Component and extract the interactive navigation shell into a client component. This lets page-level data fetching stay on the server while the nav handles routing on the client.
+
 ```tsx
-// app/(authenticated)/layout.tsx
+// app/(authenticated)/layout.tsx  — Server Component (no 'use client')
+import { NavShell } from '@/components/NavShell'
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return <NavShell>{children}</NavShell>
+}
+```
+
+```tsx
+// components/NavShell.tsx
 'use client'
 
-import { useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import { NavigationDrawer, NavigationRail, NavigationBar, TopAppBar } from '@/components/m3'
 
 const NAV_ITEMS = [
-  { label: 'Home',  icon: 'home',  href: '/home' },
-  { label: 'Inbox', icon: 'inbox', href: '/inbox', badge: 4 },
+  { label: 'Home',     icon: 'home',     href: '/home' },
+  { label: 'Inbox',    icon: 'inbox',    href: '/inbox', badge: 4 },
+  { label: 'Projects', icon: 'folder',   href: '/projects' },
+  { label: 'Settings', icon: 'settings', href: '/settings' },
 ]
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const [active, setActive] = useState('/home')
+export function NavShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const router   = useRouter()
 
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-      {/* Desktop: full drawer */}
+      {/* Desktop: full drawer (> 1240px) */}
       <div className="nav-desktop">
-        <NavigationDrawer items={NAV_ITEMS} activeHref={active} onNavigate={setActive} />
+        <NavigationDrawer
+          items={NAV_ITEMS}
+          activeHref={pathname}
+          onNavigate={href => router.push(href)}
+        />
       </div>
 
-      {/* Tablet: compact rail */}
+      {/* Tablet: compact rail (600–1240px) */}
       <div className="nav-tablet">
-        <NavigationRail items={NAV_ITEMS} activeHref={active} onNavigate={setActive} />
+        <NavigationRail
+          items={NAV_ITEMS}
+          activeHref={pathname}
+          onNavigate={href => router.push(href)}
+        />
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -891,9 +1071,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
 
-        {/* Mobile: bottom bar */}
+        {/* Mobile: bottom bar (< 600px) */}
         <div className="nav-mobile">
-          <NavigationBar items={NAV_ITEMS} activeHref={active} onNavigate={setActive} />
+          <NavigationBar
+            items={NAV_ITEMS}
+            activeHref={pathname}
+            onNavigate={href => router.push(href)}
+          />
         </div>
       </div>
     </div>
@@ -960,3 +1144,43 @@ Sizes and values that come directly from the official M3 specification:
 - [@lit/react](https://lit.dev/docs/frameworks/react/) — React wrappers for Lit components
 - [Roboto Flex](https://fonts.google.com/specimen/Roboto+Flex) — official M3 typeface
 - [Material Symbols Rounded](https://fonts.google.com/icons) — icon font
+
+---
+
+## Known limitations
+
+**`transpilePackages` is required.**
+`@material/web` calls `customElements.define()` at module import time, which requires `window` and `document` to exist. Without `transpilePackages` in `next.config.js`, Next.js evaluates these packages on the server and throws a `ReferenceError: self is not defined` or similar. This is not optional — forgetting it produces cryptic errors that are hard to trace back to the config.
+
+**This library is copy-based, not a versioned npm package.**
+There is no `npm install rohanpaldesign/m3-nextjs-starter`. You copy the `components/m3/` folder into your project. This means updates don't flow automatically — see [Keeping up to date](#keeping-up-to-date) below.
+
+**All M3 wrappers require `'use client'`.**
+`@material/web` components are Lit-based custom elements — they rely on browser APIs that are unavailable during server-side rendering. Every file in `components/m3/` that wraps a `@material/web` element has `'use client'` at the top. You cannot import them directly in React Server Components; wrap them in a client component boundary instead (see [Server Components and 'use client'](#server-components-and-use-client) above).
+
+**No IE11 / legacy browser support.**
+Web components require modern browser APIs (`customElements`, `shadowRoot`, CSS custom properties). IE11 and pre-Chromium Edge are not supported. All evergreen browsers (Chrome, Firefox, Safari, Edge) work correctly.
+
+**No right-to-left (RTL) layout support.**
+The custom components (`NavigationDrawer`, `TopAppBar`, etc.) use fixed `left`/`right` CSS and do not flip for RTL locales. `@material/web` components do have some RTL awareness, but the custom shells do not. RTL support would require per-component overrides.
+
+---
+
+## Keeping up to date
+
+Since components are copied into your project rather than installed as a versioned package, updates require a manual sync:
+
+1. **Check for changes** — visit `https://github.com/rohanpaldesign/m3-nextjs-starter/commits/main` and scan commit messages for component names you're using.
+
+2. **Copy updated files** — download or copy any changed files from `components/m3/` into your project, then re-apply any per-file customizations you made.
+
+3. **Check `globals.css`** — new components may introduce new CSS variables or utility classes. Diff `app/globals.css` against your project's global CSS and merge any additions.
+
+4. **Pin to a commit when copying** — if your project needs stability, note the commit SHA you copied from (e.g., in a comment in your `globals.css` or a `COMPONENTS_VERSION` file). That way you know exactly what diff to apply when you decide to update.
+
+```bash
+# Example: see what changed in components/m3 since a specific commit
+git log <commit-sha>..HEAD -- components/m3/
+```
+
+There is no automated upgrade path — but because the components are plain TypeScript/React files with no build step, copying individual files is straightforward and the diff is easy to review.
